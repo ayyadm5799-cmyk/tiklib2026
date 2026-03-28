@@ -524,6 +524,90 @@ def publisher_stats():
 
 @app.route('/')
 def index(): return send_from_directory('static', 'index.html')
+# ── API للناشر التلقائي (fb-publisher) ────────────────────────────────────────
+# أضف هذا الكود في نهاية ملف app.py في مكتبة tiklib2026
+# قبل السطر: if __name__ == '__main__':
+
+@app.route('/api/publisher/next', methods=['GET'])
+def publisher_next():
+    count = int(request.args.get('count', 5))
+    page_id = request.args.get('page_id', 'default')
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS publisher_progress (
+                page_id TEXT PRIMARY KEY,
+                last_video_id INTEGER DEFAULT 0,
+                total_published INTEGER DEFAULT 0,
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+        db.commit()
+        cur.execute("SELECT last_video_id FROM publisher_progress WHERE page_id=%s", (page_id,))
+        row = cur.fetchone()
+        last_id = row['last_video_id'] if row else 0
+        cur.execute("""
+            SELECT v.id, v.video_id, v.title, v.play_url, v.nowm_url,
+                   v.thumbnail, v.duration, v.platform, v.author,
+                   p.username
+            FROM videos v
+            JOIN profiles p ON v.profile_id = p.id
+            WHERE v.id > %s
+            ORDER BY v.id ASC
+            LIMIT %s
+        """, (last_id, count))
+        videos = [row_to_dict(r) for r in cur.fetchall()]
+        if not videos:
+            cur.execute("""
+                SELECT v.id, v.video_id, v.title, v.play_url, v.nowm_url,
+                       v.thumbnail, v.duration, v.platform, v.author,
+                       p.username
+                FROM videos v
+                JOIN profiles p ON v.profile_id = p.id
+                ORDER BY v.id ASC
+                LIMIT %s
+            """, (count,))
+            videos = [row_to_dict(r) for r in cur.fetchall()]
+            last_id = 0
+        if videos:
+            new_last_id = videos[-1]['id']
+            cur.execute("""
+                INSERT INTO publisher_progress (page_id, last_video_id, total_published, updated_at)
+                VALUES (%s, %s, %s, NOW())
+                ON CONFLICT (page_id) DO UPDATE SET
+                    last_video_id = EXCLUDED.last_video_id,
+                    total_published = publisher_progress.total_published + %s,
+                    updated_at = NOW()
+            """, (page_id, new_last_id, len(videos), len(videos)))
+            db.commit()
+        return jsonify({'success': True, 'videos': videos, 'count': len(videos), 'page_id': page_id})
+    except Exception as e:
+        log.error(f"publisher_next error: {e}")
+        db.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    finally:
+        cur.close()
+        db.close()
+
+@app.route('/api/publisher/stats', methods=['GET'])
+def publisher_stats():
+    db = get_db()
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT COUNT(*) as total FROM videos")
+        total = cur.fetchone()['total']
+        try:
+            cur.execute("SELECT * FROM publisher_progress ORDER BY updated_at DESC")
+            progress = [row_to_dict(r) for r in cur.fetchall()]
+        except:
+            progress = []
+        return jsonify({'total_videos': total, 'pages_progress': progress})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cur.close()
+        db.close()
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
