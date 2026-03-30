@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TikLib — الإعدادات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Exo+2:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#010101;--s1:#111;--s2:#181818;--s3:#222;--brd:#2a2a2a;--red:#fe2c55;--cyan:#25f4ee;--green:#06d6a0;--yellow:#ffd60a;--w:#f1f1f2;--muted:#666;--r:14px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--w);font-family:'Cairo',sans-serif;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:2px}
+
+.page{max-width:720px;margin:0 auto;padding:32px 20px}
+
+/* Header */
+.hdr{display:flex;align-items:center;gap:14px;margin-bottom:32px}
+.back-btn{background:var(--s2);border:1px solid var(--brd);color:var(--muted);border-radius:10px;padding:8px 14px;font-family:'Cairo',sans-serif;font-size:12px;cursor:pointer;transition:.2s;text-decoration:none;display:flex;align-items:center;gap:6px}
+.back-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.hdr-title{font-family:'Exo 2',sans-serif;font-weight:900;font-size:24px}
+.hdr-title span{color:var(--cyan)}
+.save-all-btn{margin-right:auto;background:linear-gradient(135deg,var(--red),#ff4d6d);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s}
+.save-all-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+
+/* Cards */
+.card{background:var(--s1);border:1px solid var(--brd);border-radius:var(--r);margin-bottom:16px;overflow:hidden}
+.card-hdr{padding:16px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--brd);cursor:pointer;user-select:none}
+.card-icon{font-size:20px}
+.card-title{font-weight:700;font-size:15px;flex:1}
+.card-badge{font-size:10px;padding:3px 10px;border-radius:50px;font-weight:700}
+.badge-ok{background:rgba(6,214,160,.15);color:var(--green);border:1px solid rgba(6,214,160,.3)}
+.badge-err{background:rgba(254,44,85,.12);color:var(--red);border:1px solid rgba(254,44,85,.25)}
+.badge-warn{background:rgba(255,214,10,.12);color:var(--yellow);border:1px solid rgba(255,214,10,.25)}
+.card-arrow{color:var(--muted);font-size:12px;transition:.2s}
+.card.open .card-arrow{transform:rotate(180deg)}
+.card-body{display:none;padding:20px}
+.card.open .card-body{display:block}
+
+/* Form */
+.field{margin-bottom:18px}
+.field-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;font-weight:600}
+.field-label .req{color:var(--red)}
+.field-input{width:100%;background:var(--s2);border:1px solid var(--brd);border-radius:10px;padding:10px 14px;color:var(--w);font-family:'Cairo',sans-serif;font-size:13px;outline:none;transition:.2s;direction:ltr}
+.field-input:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(37,244,238,.08)}
+.field-input::placeholder{color:var(--muted);direction:rtl}
+textarea.field-input{resize:vertical;min-height:100px;direction:ltr}
+.field-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.6}
+.field-hint a{color:var(--cyan);text-decoration:none}
+.field-hint a:hover{text-decoration:underline}
+
+/* Row with button */
+.input-row{display:flex;gap:8px}
+.input-row .field-input{flex:1}
+.test-btn{background:var(--s3);border:1px solid var(--brd);color:var(--muted);border-radius:10px;padding:10px 16px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.test-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* Status indicator */
+.status-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;font-size:12px;margin-top:8px}
+.status-ok{background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);color:var(--green)}
+.status-err{background:rgba(254,44,85,.08);border:1px solid rgba(254,44,85,.2);color:var(--red)}
+.status-warn{background:rgba(255,214,10,.08);border:1px solid rgba(255,214,10,.2);color:var(--yellow)}
+
+/* Keys list */
+.keys-count{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.keys-badge{background:rgba(37,244,238,.1);border:1px solid rgba(37,244,238,.2);color:var(--cyan);border-radius:50px;padding:3px 12px;font-size:11px;font-weight:700}
+
+/* Divider */
+.divider{border:none;border-top:1px solid var(--brd);margin:18px 0}
+
+/* Save btn */
+.save-btn{background:linear-gradient(135deg,var(--red),#ff4d6d);color:#fff;border:none;border-radius:10px;padding:10px 24px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:8px}
+.save-btn:hover{filter:brightness(1.1)}
+.save-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--s2);border:1px solid var(--brd);border-radius:50px;padding:10px 22px;font-size:12px;font-weight:600;z-index:300;transition:.3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:var(--red);color:var(--red)}
+.toast.warn{border-color:var(--yellow);color:var(--yellow)}
+
+/* Steps */
+.steps{background:var(--s2);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.step{display:flex;gap:10px;margin-bottom:8px;font-size:12px;line-height:1.6;color:var(--muted)}
+.step:last-child{margin:0}
+.step-num{background:var(--red);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step code{background:var(--s3);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan)}
+
+/* Range */
+.range-wrap{display:flex;align-items:center;gap:12px}
+input[type=range]{flex:1;-webkit-appearance:none;height:4px;background:var(--brd);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--red);cursor:pointer}
+.range-val{font-family:'Exo 2',sans-serif;font-weight:700;font-size:16px;color:var(--cyan);min-width:50px;text-align:center}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="hdr">
+    <a href="/" class="back-btn">← رجوع</a>
+    <div class="hdr-title">⚙️ إعدادات <span>TikLib</span></div>
+    <button class="save-all-btn" onclick="saveAll()">💾 حفظ الكل</button>
+  </div>
+
+  <!-- RapidAPI Card -->
+  <div class="card open" id="card-rapid">
+    <div class="card-hdr" onclick="toggle('card-rapid')">
+      <div class="card-icon">🔑</div>
+      <div class="card-title">مفاتيح RapidAPI</div>
+      <span class="card-badge badge-warn" id="badge-rapid">جاري التحقق...</span>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div>روح <a href="https://rapidapi.com" target="_blank" style="color:var(--cyan)">rapidapi.com</a> وسجل حساب مجاني</div></div>
+        <div class="step"><div class="step-num">2</div><div>ابحث عن <code>tiktok-video-no-watermark2</code> واشترك في الـ Free plan</div></div>
+        <div class="step"><div class="step-num">3</div><div>انسخ الـ <code>X-RapidAPI-Key</code> وحطه هنا</div></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">المفتاح الرئيسي <span class="req">*</span></div>
+        <div class="input-row">
+          <input class="field-input" id="rapidapi_key" placeholder="xxxxxxxxxxmshxxxxxxxxxxxxxxxxxxxxxxxxx" type="password">
+          <button class="test-btn" onclick="testRapidAPI()">🧪 اختبار</button>
+        </div>
+        <div class="field-hint">من RapidAPI → My Apps → Default App → X-RapidAPI-Key</div>
+        <div id="rapid-status" style="display:none"></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">مفاتيح إضافية (اختياري — كل مفتاح في سطر)</div>
+        <div class="keys-count">
+          <span style="font-size:12px;color:var(--muted)">عدد المفاتيح:</span>
+          <span class="keys-badge" id="keys-count-badge">0 مفتاح</span>
+          <span style="font-size:11px;color:var(--muted)">= 0 request/شهر</span>
+        </div>
+        <textarea class="field-input" id="rapidapi_keys" placeholder="مفتاح1&#10;مفتاح2&#10;مفتاح3" oninput="updateKeysCount(this.value)"></textarea>
+        <div class="field-hint">كل مفتاح بيدي 500 request/شهر مجاناً. 10 مفاتيح = 5000 request/شهر</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dropbox Card -->
+  <div class="card open" id="card-dropbox">
+    <div class="card-hdr" onclick="toggle('card-dropbox')">
+      <div class="card-icon">📦</div>
+      <div class="card-title">إعدادات Dropbox</div>
+      <span class="card-badge badge-warn" id="badge-dropbox">جاري التحقق...</span>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="steps">
+        <div class="step"><div class="step-num">1</div><div>روح <a href="https://dropbox.com/developers/apps" target="_blank" style="color:var(--cyan)">dropbox.com/developers/apps</a></div></div>
+        <div class="step"><div class="step-num">2</div><div>اضغط <code>Create app</code> → <code>Scoped access</code> → <code>Full Dropbox</code></div></div>
+        <div class="step"><div class="step-num">3</div><div>روح <code>Permissions</code> وفعّل <code>files.content.write</code></div></div>
+        <div class="step"><div class="step-num">4</div><div>من <code>Settings</code> انسخ <code>App key</code> و<code>App secret</code></div></div>
+        <div class="step"><div class="step-num">5</div><div>اضغط زر "إنشاء Refresh Token" في الأسفل للحصول على توكن دائم</div></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">App Key (Client ID) <span class="req">*</span></div>
+        <input class="field-input" id="dropbox_client_id" placeholder="xxxxxxxxxxxx">
+        <div class="field-hint">من Dropbox App Console → Settings → App key</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">App Secret (Client Secret) <span class="req">*</span></div>
+        <input class="field-input" id="dropbox_client_secret" placeholder="xxxxxxxxxxxx" type="password">
+        <div class="field-hint">من Dropbox App Console → Settings → App secret</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Refresh Token الدائم <span class="req">*</span></div>
+        <div class="input-row">
+          <input class="field-input" id="dropbox_refresh_token" placeholder="الصق الـ Refresh Token هنا" type="password">
+          <button class="test-btn" onclick="testDropbox()">🧪 اختبار</button>
+        </div>
+        <div id="dropbox-status" style="display:none"></div>
+      </div>
+
+      <button class="test-btn" style="margin-bottom:14px;width:100%;padding:12px;font-size:13px" onclick="getRefreshToken()">
+        🔑 إنشاء Refresh Token تلقائياً
+      </button>
+
+      <div class="field">
+        <div class="field-label">مجلد الحفظ</div>
+        <input class="field-input" id="dropbox_folder" placeholder="/videos" value="/videos">
+        <div class="field-hint">المجلد اللي هتتحفظ فيه الفيديوهات على Dropbox</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="card open" id="card-filters">
+    <div class="card-hdr" onclick="toggle('card-filters')">
+      <div class="card-icon">⏱️</div>
+      <div class="card-title">فلتر المدة</div>
+      <span class="card-badge badge-ok">شغال</span>
+      <span class="card-arrow">▼</span>
+    </div>
+    <div class="card-body">
+      <div class="field">
+        <div class="field-label">الحد الأقصى للمدة (ثانية)</div>
+        <div class="range-wrap">
+          <input type="range" id="max_duration" min="30" max="600" value="120" oninput="document.getElementById('dur-val').textContent=this.value+'s'">
+          <div class="range-val" id="dur-val">120s</div>
+        </div>
+        <div class="field-hint">الإعداد الحالي: أقل من 5 دقائق و0 ثانية — الفيديوهات الأطول يتم تخطيها تلقائياً</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save button -->
+  <button class="save-btn" onclick="saveAll()" style="width:100%;justify-content:center;padding:14px;font-size:14px;margin-top:8px">
+    💾 حفظ جميع الإعدادات
+  </button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Refresh Token Modal -->
+<div id="rt-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--s1);border:1px solid var(--brd);border-radius:16px;max-width:480px;width:100%;padding:24px">
+    <h3 style="margin-bottom:16px;font-size:16px">🔑 إنشاء Refresh Token</h3>
+    <div id="rt-step1">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7">
+        1. سيتم فتح صفحة Dropbox في المتصفح<br>
+        2. اضغط <strong>Allow</strong><br>
+        3. انسخ الكود من الـ URL وألصقه هنا
+      </p>
+      <button onclick="openDropboxAuth()" style="width:100%;background:var(--cyan);color:#000;border:none;border-radius:10px;padding:11px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px">
+        🌐 فتح صفحة Dropbox
+      </button>
+      <input class="field-input" id="rt-code" placeholder="الصق الكود من الـ URL هنا..." style="margin-bottom:10px">
+      <div style="display:flex;gap:8px">
+        <button onclick="exchangeCode()" style="flex:1;background:var(--red);color:#fff;border:none;border-radius:10px;padding:10px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">✅ الحصول على Token</button>
+        <button onclick="closeModal()" style="background:var(--s2);border:1px solid var(--brd);color:var(--muted);border-radius:10px;padding:10px 16px;font-family:'Cairo',sans-serif;font-size:13px;cursor:pointer">إغلاق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    const s = await fetch('/api/settings').then(r=>r.json());
+
+    // Set values (masked)
+    if(s.rapidapi_key)          document.getElementById('rapidapi_key').placeholder = s.rapidapi_key;
+    if(s.rapidapi_keys)         document.getElementById('rapidapi_keys').value = s.rapidapi_keys;
+    if(s.dropbox_refresh_token) document.getElementById('dropbox_refresh_token').placeholder = s.dropbox_refresh_token;
+    if(s.dropbox_client_id)     document.getElementById('dropbox_client_id').value = s.dropbox_client_id;
+    if(s.dropbox_client_secret) document.getElementById('dropbox_client_secret').placeholder = s.dropbox_client_secret;
+    if(s.dropbox_folder)        document.getElementById('dropbox_folder').value = s.dropbox_folder;
+    if(s.max_duration){
+      document.getElementById('max_duration').value = s.max_duration;
+      document.getElementById('dur-val').textContent = s.max_duration + 's';
+    }
+    updateKeysCount(s.rapidapi_keys || '');
+
+    // Badges
+    setBadge('badge-rapid',   s.has_rapidapi ? 'ok' : 'err', s.has_rapidapi ? `✅ ${s.keys_count} مفتاح` : '❌ مش موجود');
+    setBadge('badge-dropbox', s.has_dropbox  ? 'ok' : 'err', s.has_dropbox  ? '✅ متصل' : '❌ مش موجود');
+  }catch(e){ console.error(e); }
+}
+
+function toggle(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+function setBadge(id, type, text){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = `card-badge badge-${type}`;
+}
+
+function updateKeysCount(val){
+  const keys = val.split('\n').filter(k=>k.trim());
+  const badge = document.getElementById('keys-count-badge');
+  const next = badge.nextElementSibling;
+  badge.textContent = keys.length + ' مفتاح';
+  if(next) next.textContent = `= ${keys.length * 500} request/شهر`;
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+async function saveAll(){
+  const data = {
+    rapidapi_key:          document.getElementById('rapidapi_key').value,
+    rapidapi_keys:         document.getElementById('rapidapi_keys').value,
+    dropbox_refresh_token: document.getElementById('dropbox_refresh_token').value,
+    dropbox_client_id:     document.getElementById('dropbox_client_id').value,
+    dropbox_client_secret: document.getElementById('dropbox_client_secret').value,
+    dropbox_folder:        document.getElementById('dropbox_folder').value,
+    max_duration:          document.getElementById('max_duration').value,
+  };
+  try{
+    const r = await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const d = await r.json();
+    if(d.ok){
+      toast(d.msg,'ok');
+      setTimeout(init, 500);
+    } else {
+      toast(d.msg,'err');
+    }
+  }catch(e){ toast('خطأ في الحفظ','err'); }
+}
+
+// ── Test ──────────────────────────────────────────────────────────────────────
+async function testRapidAPI(){
+  const el = document.getElementById('rapid-status');
+  el.style.display='flex';
+  el.className='status-row status-warn';
+  el.textContent='⏳ جاري الاختبار...';
+  try{
+    const r = await fetch('/api/settings/test_rapidapi',{method:'POST'});
+    const d = await r.json();
+    el.className = `status-row status-${d.ok?'ok':'err'}`;
+    el.textContent = d.msg;
+    if(d.ok) setBadge('badge-rapid','ok',d.msg);
+  }catch(e){ el.textContent='خطأ'; el.className='status-row status-err'; }
+}
+
+async function testDropbox(){
+  const el = document.getElementById('dropbox-status');
+  el.style.display='flex';
+  el.className='status-row status-warn';
+  el.textContent='⏳ جاري الاختبار...';
+  try{
+    const r = await fetch('/api/settings/test_dropbox',{method:'POST'});
+    const d = await r.json();
+    el.className = `status-row status-${d.ok?'ok':'err'}`;
+    el.textContent = d.msg;
+    if(d.ok) setBadge('badge-dropbox','ok','✅ متصل');
+  }catch(e){ el.textContent='خطأ'; el.className='status-row status-err'; }
+}
+
+// ── Refresh Token ─────────────────────────────────────────────────────────────
+function getRefreshToken(){
+  document.getElementById('rt-modal').style.display='flex';
+}
+
+function closeModal(){
+  document.getElementById('rt-modal').style.display='none';
+}
+
+function openDropboxAuth(){
+  const clientId = document.getElementById('dropbox_client_id').value || 'jyu5031v2rkzfr4';
+  const url = `https://www.dropbox.com/oauth2/authorize?client_id=${clientId}&token_access_type=offline&response_type=code&redirect_uri=http://localhost`;
+  window.open(url,'_blank');
+}
+
+async function exchangeCode(){
+  const code = document.getElementById('rt-code').value.trim();
+  const clientId = document.getElementById('dropbox_client_id').value || 'jyu5031v2rkzfr4';
+  const clientSecret = document.getElementById('dropbox_client_secret').value || 'ni1uvt1lfe2z3cw';
+  if(!code){ toast('أدخل الكود أولاً','err'); return; }
+  try{
+    const r = await fetch('https://api.dropbox.com/oauth2/token',{
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({
+        code, grant_type:'authorization_code',
+        client_id: clientId, client_secret: clientSecret,
+        redirect_uri:'http://localhost'
+      })
+    });
+    const d = await r.json();
+    if(d.refresh_token){
+      document.getElementById('dropbox_refresh_token').value = d.refresh_token;
+      closeModal();
+      toast('✅ تم الحصول على Refresh Token الدائم!','ok');
+    } else {
+      toast('الكود منتهي — جرب تاني بسرعة','err');
+    }
+  }catch(e){ toast('خطأ: '+e.message,'err'); }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  clearTimeout(t._t); t._t=setTimeout(()=>t.className='toast',3500);
+}
+
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+init();
+</script>
+</body>
+</html>
